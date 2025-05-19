@@ -1,7 +1,11 @@
 package com.vibeat.backend.model;
+import com.vibeat.backend.model.TipoEntrada;
+import com.vibeat.backend.util.TipoEntradaConverter;
+
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "EVENTOS_NO_OFICIALES")
@@ -17,6 +21,9 @@ public class EventoNoOficial {
     @Column(name = "LUGAR", nullable = false)
     private String lugar;
     
+    @Column(name = "DESCRIPCION", length = 500)
+    private String descripcion;
+    
     @Column(name = "FECHA_INICIO", nullable = false)
     private LocalDateTime fechaInicio;
     
@@ -29,8 +36,15 @@ public class EventoNoOficial {
     @Column(name = "NUMERO_TIPOS_ENTRADA")
     private Integer numeroTiposEntrada;
     
+    @Convert(converter = TipoEntradaConverter.class)
+    @Column(name = "TIPOS_ENTRADA", columnDefinition = "json")
+    private List<TipoEntrada> tiposEntrada;
+    
     @Column(name = "NUMERO_ATENCION_CLIENTE")
     private String numeroAtencionCliente;
+    
+    @Column(name = "EMAIL_ATENCION_CLIENTE")
+    private String emailAtencionCliente;
     
     @Column(name = "FECHA_CREACION", insertable = false, updatable = false)
     private LocalDateTime fechaCreacion;
@@ -52,6 +66,13 @@ public class EventoNoOficial {
     }
     public void setLugar(String lugar) {
         this.lugar = lugar;
+    }
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
     public LocalDateTime getFechaInicio() {
         return fechaInicio;
@@ -77,11 +98,25 @@ public class EventoNoOficial {
     public void setNumeroTiposEntrada(Integer numeroTiposEntrada) {
         this.numeroTiposEntrada = numeroTiposEntrada;
     }
-    public String getNumeroAtencionCliente() {
+    
+    public List<TipoEntrada> getTiposEntrada() {
+		return tiposEntrada;
+	}
+	public void setTiposEntrada(List<TipoEntrada> tiposEntrada) {
+		this.tiposEntrada = tiposEntrada;
+	}
+	public String getNumeroAtencionCliente() {
         return numeroAtencionCliente;
     }
     public void setNumeroAtencionCliente(String numeroAtencionCliente) {
         this.numeroAtencionCliente = numeroAtencionCliente;
+    }
+    public String getEmailAtencionCliente() {
+        return emailAtencionCliente;
+    }
+
+    public void setEmailAtencionCliente(String emailAtencionCliente) {
+        this.emailAtencionCliente = emailAtencionCliente;
     }
     public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
@@ -89,4 +124,5 @@ public class EventoNoOficial {
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
     }
+    
 }

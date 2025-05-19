@@ -1,21 +1,26 @@
 package com.vibeat.backend.controller;
 
+import com.vibeat.backend.model.EventoOficial;
+import com.vibeat.backend.service.EventoOficialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.vibeat.backend.model.EventoOficial;
-import com.vibeat.backend.service.EventoOficialService;
-
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/eventos-oficiales")
+@CrossOrigin(origins = "http://localhost:3000")
 public class EventoOficialController {
 
     @Autowired
     private EventoOficialService eventoOficialService;
+
+    @PostMapping("/nuevo")
+    public ResponseEntity<EventoOficial> crearEvento(@RequestBody EventoOficial evento) {
+        EventoOficial guardado = eventoOficialService.saveEvento(evento);
+        return ResponseEntity.ok(guardado);
+    }
 
     @GetMapping
     public List<EventoOficial> getAllEventos() {
@@ -27,11 +32,6 @@ public class EventoOficialController {
         return eventoOficialService.getEventoById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public EventoOficial createEvento(@RequestBody EventoOficial evento) {
-        return eventoOficialService.saveEvento(evento);
     }
 
     @DeleteMapping("/{id}")
