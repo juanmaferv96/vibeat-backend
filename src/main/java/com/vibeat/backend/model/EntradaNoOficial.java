@@ -45,6 +45,12 @@ public class EntradaNoOficial {
     @Column(name = "FECHA_COMPRA")
     private LocalDateTime fechaCompra;
     
+    @Column(name = "ESCANEADAS", nullable = false)
+    private int escaneadas = 0;
+
+    @Column(name = "NOMBRE_PREMIO")
+    private String nombrePremio;
+    
     public Long getId() {
         return id;
     }
@@ -116,5 +122,17 @@ public class EntradaNoOficial {
     }
     public void setFechaCompra(LocalDateTime fechaCompra) {
         this.fechaCompra = fechaCompra;
+    }
+    public int getEscaneadas() {
+        return escaneadas;
+    }
+    public void setEscaneadas(int escaneadas) {
+        this.escaneadas = escaneadas;
+    }
+    public String getNombrePremio() {
+        return nombrePremio;
+    }
+    public void setNombrePremio(String nombrePremio) {
+        this.nombrePremio = nombrePremio;
     }
 }

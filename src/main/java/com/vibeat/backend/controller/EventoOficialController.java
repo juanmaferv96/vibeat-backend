@@ -1,6 +1,7 @@
 package com.vibeat.backend.controller;
 
 import com.vibeat.backend.model.EventoOficial;
+import com.vibeat.backend.dto.EventoOficialDTO;
 import com.vibeat.backend.service.EventoOficialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,33 +11,29 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/eventos-oficiales")
-@CrossOrigin(origins = "http://localhost:3000")
 public class EventoOficialController {
 
     @Autowired
     private EventoOficialService eventoOficialService;
 
-    @PostMapping("/nuevo")
-    public ResponseEntity<EventoOficial> crearEvento(@RequestBody EventoOficial evento) {
-        EventoOficial guardado = eventoOficialService.saveEvento(evento);
-        return ResponseEntity.ok(guardado);
-    }
-
     @GetMapping
-    public List<EventoOficial> getAllEventos() {
-        return eventoOficialService.getAllEventos();
+    public List<EventoOficial> getEventosOficiales() {
+        return eventoOficialService.getEventosOficiales();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EventoOficial> getEventoById(@PathVariable Long id) {
-        return eventoOficialService.getEventoById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<EventoOficialDTO> getEventoOficial(@PathVariable Long id) {
+        EventoOficialDTO dto = eventoOficialService.getEventoOficialDTO(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping
+    public EventoOficial crearEventoOficial(@RequestBody EventoOficial eventoOficial) {
+        return eventoOficialService.saveEventoOficial(eventoOficial);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEvento(@PathVariable Long id) {
-        eventoOficialService.deleteEvento(id);
-        return ResponseEntity.noContent().build();
+    public void eliminarEventoOficial(@PathVariable Long id) {
+        eventoOficialService.deleteEventoOficial(id);
     }
 }

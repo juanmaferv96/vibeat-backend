@@ -42,6 +42,13 @@ public class Usuario {
     @Column(name = "PASSWORD", nullable = false)
     private String password;
     
+    @Column(name = "ES_RRPP", nullable = false)
+    private int esRrpp = 0;
+
+    @Column(name = "ES_ESCANEADOR", nullable = false)
+    private int esEscaneador = 0;
+
+    
     public Long getId() {
         return id;
     }
@@ -107,5 +114,17 @@ public class Usuario {
     }
     public void setPassword(String password) {
         this.password = password;
+    }
+    public int getEsRrpp() {
+        return esRrpp;
+    }
+    public void setEsRrpp(int esRrpp) {
+        this.esRrpp = esRrpp;
+    }
+    public int getEsEscaneador() {
+        return esEscaneador;
+    }
+    public void setEsEscaneador(int esEscaneador) {
+        this.esEscaneador = esEscaneador;
     }
 }
