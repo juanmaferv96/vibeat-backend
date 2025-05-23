@@ -15,6 +15,12 @@ public class EntradaOficial {
     @Column(name = "EVENTO_OFICIAL_ID", nullable = false)
     private Long eventoOficialId;
     
+    @Column(name = "TIPO_ENTRADA", nullable = false)
+    private String tipoEntrada;
+    
+    @Column(name = "REFERENCIA")
+    private String referencia;
+    
     @Column(name = "USUARIO_ID", nullable = false)
     private Long usuarioId;
     
@@ -63,7 +69,19 @@ public class EntradaOficial {
     public void setEventoOficialId(Long eventoOficialId) {
         this.eventoOficialId = eventoOficialId;
     }
-    public Long getUsuarioId() {
+    public String getTipoEntrada() {
+		return tipoEntrada;
+	}
+	public void setTipoEntrada(String tipoEntrada) {
+		this.tipoEntrada = tipoEntrada;
+	}
+	public String getReferencia() {
+	    return referencia;
+	}
+	public void setReferencia(String referencia) {
+	    this.referencia = referencia;
+	}
+	public Long getUsuarioId() {
         return usuarioId;
     }
     public void setUsuarioId(Long usuarioId) {
