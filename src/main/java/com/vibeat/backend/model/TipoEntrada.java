@@ -8,12 +8,23 @@ public class TipoEntrada {
     private int totalEntradas;
     private int entradasDisponibles;
     private int numeroPremiadas;
-    private int premiosEntregados;
+    // CAMBIO: premiosEntregados -> premiosDisponibles
+    private int premiosDisponibles;
     private String nombrePremio;
 
     public TipoEntrada() {}
-    
-    public TipoEntrada(String nombre, double precio, String descripcion, int numeroPremiadas, int totalEntradas, String tipoSorteo, String nombrePremio, int entradasDisponibles, int premiosEntregados) {
+
+    public TipoEntrada(
+        String nombre,
+        double precio,
+        String descripcion,
+        int numeroPremiadas,
+        int totalEntradas,
+        String tipoSorteo,
+        String nombrePremio,
+        int entradasDisponibles,
+        int premiosDisponibles
+    ) {
         this.nombre = nombre;
         this.precio = precio;
         this.descripcion = descripcion;
@@ -21,15 +32,17 @@ public class TipoEntrada {
         this.totalEntradas = totalEntradas;
         this.tipoSorteo = tipoSorteo;
         this.nombrePremio = nombrePremio;
-        this.entradasDisponibles = this.totalEntradas; 
-        this.premiosEntregados = 0;                     
+
+        // Mantener la semántica "disponibles" para ambos contadores
+        this.entradasDisponibles = totalEntradas;
+        // Inicializa premiosDisponibles con el número de premiadas
+        this.premiosDisponibles = Math.max(0, numeroPremiadas);
     }
 
     // Getters y setters
     public String getNombre() {
         return nombre;
     }
-
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
@@ -37,7 +50,6 @@ public class TipoEntrada {
     public double getPrecio() {
         return precio;
     }
-
     public void setPrecio(double precio) {
         this.precio = precio;
     }
@@ -45,7 +57,6 @@ public class TipoEntrada {
     public String getTipoSorteo() {
         return tipoSorteo;
     }
-
     public void setTipoSorteo(String tipoSorteo) {
         this.tipoSorteo = tipoSorteo;
     }
@@ -53,7 +64,6 @@ public class TipoEntrada {
     public String getDescripcion() {
         return descripcion;
     }
-
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
     }
@@ -61,16 +71,15 @@ public class TipoEntrada {
     public int getTotalEntradas() {
         return totalEntradas;
     }
-
     public void setTotalEntradas(int totalEntradas) {
         this.totalEntradas = totalEntradas;
-        this.entradasDisponibles = totalEntradas; // default logic
+        // mantener comportamiento actual: al setear total, entradasDisponibles = total
+        this.entradasDisponibles = totalEntradas;
     }
 
     public int getEntradasDisponibles() {
         return entradasDisponibles;
     }
-
     public void setEntradasDisponibles(int entradasDisponibles) {
         this.entradasDisponibles = entradasDisponibles;
     }
@@ -78,23 +87,25 @@ public class TipoEntrada {
     public int getNumeroPremiadas() {
         return numeroPremiadas;
     }
-
     public void setNumeroPremiadas(int numeroPremiadas) {
         this.numeroPremiadas = numeroPremiadas;
+        // si cambia numeroPremiadas y aún no se ha configurado explícitamente, lo normal es alinear premiosDisponibles
+        if (this.premiosDisponibles < 0) {
+            this.premiosDisponibles = Math.max(0, numeroPremiadas);
+        }
     }
 
-    public int getPremiosEntregados() {
-        return premiosEntregados;
+    // CAMBIO: nuevo nombre del campo y getters/setters
+    public int getPremiosDisponibles() {
+        return premiosDisponibles;
     }
-
-    public void setPremiosEntregados(int premiosEntregados) {
-        this.premiosEntregados = premiosEntregados;
+    public void setPremiosDisponibles(int premiosDisponibles) {
+        this.premiosDisponibles = premiosDisponibles;
     }
 
     public String getNombrePremio() {
         return nombrePremio;
     }
-
     public void setNombrePremio(String nombrePremio) {
         this.nombrePremio = nombrePremio;
     }
