@@ -2,6 +2,8 @@ package com.vibeat.backend.controller;
 
 import com.vibeat.backend.model.EntradaOficial;
 import com.vibeat.backend.service.EntradaOficialService;
+import com.vibeat.backend.service.PdfEntradaService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,9 @@ public class EntradaOficialController {
 
     @Autowired
     private EntradaOficialService entradaOficialService;
+    
+    @Autowired
+    private PdfEntradaService pdfEntradaService;
 
     @GetMapping
     public List<EntradaOficial> getAllEntradas() {
@@ -61,4 +66,10 @@ public class EntradaOficialController {
     public List<EntradaOficial> getByEvento(@PathVariable Long eventoId) {
         return entradaOficialService.findByEventoId(eventoId);
     }
+    
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> descargarPdf(@PathVariable Long id) {
+        return pdfEntradaService.descargarPdfOficial(id);
+    }
+
 }
