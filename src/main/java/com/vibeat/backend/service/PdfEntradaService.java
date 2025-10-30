@@ -47,8 +47,10 @@ public class PdfEntradaService {
     }
 
     // ---------- OFICIAL ----------
-
-    public ResponseEntity<byte[]> descargarPdfOficial(Long id) {
+    public ResponseEntity<byte[]> descargarPdfOficial(Long id,
+                                                      String eventoNombre,
+                                                      String usuarioLogin,
+                                                      String tipoDesc) {
         EntradaOficial e = entradaOficialRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Entrada oficial no encontrada: id=" + id));
 
@@ -56,34 +58,30 @@ public class PdfEntradaService {
                 "Entrada Oficial",
                 e.getCodigoQr(),
                 e.getReferencia(),
-                e.getEventoId(),
-                e.getUsuarioId(),
-                e.getTipoEntrada(),
+                /*eventoNombre*/ eventoNombre,
+                /*eventoId*/ e.getEventoId(),
+                /*usuarioLogin*/ usuarioLogin,
+                /*usuarioId*/ e.getUsuarioId(),
+                /*tipoEntrada*/ e.getTipoEntrada(),
+                /*tipoDesc*/ tipoDesc,
                 e.getNombreComprador(),
                 e.getApellidosComprador(),
                 e.getDniComprador(),
                 e.getEmailComprador(),
                 e.getTelefonoComprador(),
                 e.getFechaNacimientoComprador() != null ? e.getFechaNacimientoComprador().format(DOB_FMT) : "-",
-                e.getFechaCompra() != null ? e.getFechaCompra().format(TS_HUMANO) : "-",
-                "O"
+                e.getFechaCompra() != null ? e.getFechaCompra().format(TS_HUMANO) : "-"
         );
 
-        // ======= NUEVO: nombre de archivo con el formato solicitado =======
-        String filename = buildPdfFilename(
-                e.getReferencia(),
-                e.getNombreComprador(),
-                e.getApellidosComprador(),
-                "OFICIAL-" + id
-        );
-        // ==================================================================
-
+        String filename = buildPdfFilename(e.getReferencia(), e.getNombreComprador(), e.getApellidosComprador());
         return responsePdf(filename, pdf);
     }
 
     // ---------- NO OFICIAL ----------
-
-    public ResponseEntity<byte[]> descargarPdfNoOficial(Long id) {
+    public ResponseEntity<byte[]> descargarPdfNoOficial(Long id,
+                                                        String eventoNombre,
+                                                        String usuarioLogin,
+                                                        String tipoDesc) {
         EntradaNoOficial e = entradaNoOficialRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Entrada no oficial no encontrada: id=" + id));
 
@@ -91,48 +89,36 @@ public class PdfEntradaService {
                 "Entrada No Oficial",
                 e.getCodigoQr(),
                 e.getReferencia(),
-                e.getEventoId(),
-                e.getUsuarioId(),
-                e.getTipoEntrada(),
+                /*eventoNombre*/ eventoNombre,
+                /*eventoId*/ e.getEventoId(),
+                /*usuarioLogin*/ usuarioLogin,
+                /*usuarioId*/ e.getUsuarioId(),
+                /*tipoEntrada*/ e.getTipoEntrada(),
+                /*tipoDesc*/ tipoDesc,
                 e.getNombreComprador(),
                 e.getApellidosComprador(),
                 e.getDniComprador(),
                 e.getEmailComprador(),
                 e.getTelefonoComprador(),
                 e.getFechaNacimientoComprador() != null ? e.getFechaNacimientoComprador().format(DOB_FMT) : "-",
-                e.getFechaCompra() != null ? e.getFechaCompra().format(TS_HUMANO) : "-",
-                "NO"
+                e.getFechaCompra() != null ? e.getFechaCompra().format(TS_HUMANO) : "-"
         );
 
-        // ======= NUEVO: nombre de archivo con el formato solicitado =======
-        String filename = buildPdfFilename(
-                e.getReferencia(),
-                e.getNombreComprador(),
-                e.getApellidosComprador(),
-                "NOOFICIAL-" + id
-        );
-        // ==================================================================
-
+        String filename = buildPdfFilename(e.getReferencia(), e.getNombreComprador(), e.getApellidosComprador());
         return responsePdf(filename, pdf);
     }
 
-    // ---------- Construcción del PDF genérico ----------
-
+    // ---------- Construcción del PDF ----------
     private byte[] buildPdfParaEntrada(
             String titulo,
             String codigoQr,
             String referencia,
-            Long eventoId,
-            Long usuarioId,
-            String tipoEntrada,
-            String nombre,
-            String apellidos,
-            String dni,
-            String email,
-            String telefono,
-            String dob,
-            String fechaCompra,
-            String prefijoFilename
+            String eventoNombre, Long eventoId,
+            String usuarioLogin, Long usuarioId,
+            String tipoEntrada, String tipoDesc,
+            String nombre, String apellidos,
+            String dni, String email, String telefono,
+            String dob, String fechaCompra
     ) {
         if (codigoQr == null || codigoQr.isBlank()) {
             throw new IllegalStateException("La entrada no tiene CODIGO_QR");
@@ -164,20 +150,29 @@ public class PdfEntradaService {
                 cs.endText();
                 y -= 30;
 
-                // Subtítulo (referencia)
+                // Subtítulo: referencia
                 if (referencia != null && !referencia.isBlank()) {
-                    cs.beginText();
-                    cs.setFont(PDType1Font.HELVETICA_BOLD, 12);
-                    cs.newLineAtOffset(xLeft, y);
-                    cs.showText("Referencia: " + referencia);
-                    cs.endText();
-                    y -= 18;
+                    y = writeLine(cs, "Referencia: " + referencia, xLeft, y, 12, true);
                 }
 
-                // Datos principales
-                y = writeLine(cs, "Evento ID: " + eventoId, xLeft, y, 12, true);
-                y = writeLine(cs, "Usuario ID: " + usuarioId, xLeft, y, 12, false);
+                // Evento / Usuario (ahora por nombre/username si vienen por query)
+                if (eventoNombre != null && !eventoNombre.isBlank()) {
+                    y = writeLine(cs, "Evento: " + eventoNombre, xLeft, y, 12, true);
+                } else {
+                    y = writeLine(cs, "Evento ID: " + (eventoId != null ? eventoId : "-"), xLeft, y, 12, true);
+                }
+
+                if (usuarioLogin != null && !usuarioLogin.isBlank()) {
+                    y = writeLine(cs, "Usuario (login): " + usuarioLogin, xLeft, y, 12, false);
+                } else {
+                    y = writeLine(cs, "Usuario ID: " + (usuarioId != null ? usuarioId : "-"), xLeft, y, 12, false);
+                }
+
+                // Tipo y descripción
                 y = writeLine(cs, "Tipo de entrada: " + nvl(tipoEntrada), xLeft, y, 12, false);
+                if (tipoDesc != null && !tipoDesc.isBlank()) {
+                    y = writeLine(cs, "Descripción: " + tipoDesc, xLeft, y, 12, false);
+                }
 
                 y -= 8;
                 y = writeLine(cs, "Comprador: " + nvl(nombre) + " " + nvl(apellidos), xLeft, y, 12, true);
@@ -192,7 +187,7 @@ public class PdfEntradaService {
                 y -= 18;
                 y = writeLine(cs, "Código (texto): " + codigoQr, xLeft, y, 11, false);
 
-                // Imagen del QR (derecha)
+                // Imagen QR (derecha)
                 PDImageXObject pdImage = LosslessFactory.createFromImage(doc, qrImage);
                 float qrSize = 200f;
                 float qrX = xRight - qrSize;
@@ -216,49 +211,26 @@ public class PdfEntradaService {
         return y - (size + 6);
     }
 
-    private static String nvl(String s) {
-        return (s == null || s.isBlank()) ? "-" : s;
-    }
+    private static String nvl(String s) { return (s == null || s.isBlank()) ? "-" : s; }
 
-    // ---------- NUEVO: construcción de nombre de archivo ----------
-
-    /**
-     * Construye el nombre de archivo siguiendo:
-     * "Entrada_[REFERENCIA]_[nombre][apellidos].pdf"
-     * - Sanitiza referencia/nombre/apellidos para evitar caracteres problemáticos.
-     * - Si no hay referencia, usa un fallback (p.ej. OFICIAL-123 / NOOFICIAL-123).
-     */
-    private String buildPdfFilename(String referencia, String nombre, String apellidos, String fallbackBase) {
-        String ref = (referencia == null || referencia.isBlank()) ? fallbackBase : referencia;
-        String nom = (nombre == null) ? "" : nombre;
-        String ape = (apellidos == null) ? "" : apellidos;
-
+    // ======= NUEVO: nombre de archivo sin corchetes =======
+    private String buildPdfFilename(String referencia, String nombre, String apellidos) {
+        String ref = (referencia == null || referencia.isBlank()) ? "Entrada" : referencia;
         String safeRef = sanitizeForFilename(ref);
-        String safeNom = sanitizeForFilename(nom);
-        String safeApe = sanitizeForFilename(ape);
-
-        // Formato exacto solicitado (con corchetes):
-        // Entrada_[REFERENCIA]_[nombre][Apellidos].pdf
-        return "Entrada_[" + safeRef + "]_[" + safeNom + "][" + safeApe + "].pdf";
+        String safeNom = sanitizeForFilename(nombre);
+        String safeApe = sanitizeForFilename(apellidos);
+        // Formato: Entrada_<REFERENCIA>_<Nombre><Apellidos>.pdf
+        return "Entrada_" + safeRef + "_" + safeNom + safeApe + ".pdf";
     }
 
-    /**
-     * Quita acentos y caracteres no válidos para nombres de archivo.
-     * Reemplaza espacios por guiones bajos, colapsa múltiples guiones bajos.
-     */
     private static String sanitizeForFilename(String input) {
         if (input == null) return "";
-        // Normaliza y elimina diacríticos
-        String s = Normalizer.normalize(input, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}+", "");
-        // Reemplaza todo lo que no sea a-zA-Z0-9._- con guion bajo
+        String s = Normalizer.normalize(input, Normalizer.Form.NFD).replaceAll("\\p{M}+", "");
         s = s.replaceAll("[^a-zA-Z0-9._-]+", "_");
-        // Colapsa guiones bajos repetidos y recorta
         s = s.replaceAll("_+", "_").replaceAll("^_+|_+$", "");
         return s;
     }
-
-    // ---------- helper response ----------
+    // =======================================================
 
     private ResponseEntity<byte[]> responsePdf(String filename, byte[] pdfBytes) {
         HttpHeaders headers = new HttpHeaders();

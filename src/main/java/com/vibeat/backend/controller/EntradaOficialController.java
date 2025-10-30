@@ -68,8 +68,13 @@ public class EntradaOficialController {
     }
     
     @GetMapping("/{id}/pdf")
-    public ResponseEntity<byte[]> descargarPdf(@PathVariable Long id) {
-        return pdfEntradaService.descargarPdfOficial(id);
+    public ResponseEntity<byte[]> descargarPdf(
+            @PathVariable Long id,
+            @RequestParam(required = false) String eventoNombre,
+            @RequestParam(required = false) String usuarioLogin,
+            @RequestParam(name = "tipoDesc", required = false) String tipoDesc) {
+        return pdfEntradaService.descargarPdfOficial(id, eventoNombre, usuarioLogin, tipoDesc);
     }
+
 
 }
