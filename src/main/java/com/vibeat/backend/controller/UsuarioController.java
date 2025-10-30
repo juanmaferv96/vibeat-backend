@@ -8,42 +8,59 @@ import com.vibeat.backend.model.Usuario;
 import com.vibeat.backend.service.UsuarioService;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/usuarios")
+@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
 
     @GetMapping
-    public List<Usuario> getAllUsuarios() {
-        return usuarioService.getAllUsuarios();
+    public ResponseEntity<List<Usuario>> getAll() {
+        return ResponseEntity.ok(usuarioService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> getUsuarioById(@PathVariable Long id) {
-        return usuarioService.getUsuarioById(id)
+    public ResponseEntity<Usuario> getById(@PathVariable Long id) {
+        return usuarioService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public Usuario createUsuario(@RequestBody Usuario usuario) {
-        return usuarioService.saveUsuario(usuario);
-    }
-    
+    // Registro de usuario (reforzado para may/min de email/dni y unicidades case-insensitive)
     @PostMapping("/nuevo")
-    public ResponseEntity<String> guardarNuevoUsuario(@RequestBody Usuario usuario) {
+    public ResponseEntity<?> createUsuario(@RequestBody Usuario usuario) {
         try {
-            Usuario nuevoUsuario = usuarioService.createNewUsuario(usuario);
-            return ResponseEntity.ok("Usuario registrado con éxito");
+            Usuario creado = usuarioService.createNewUsuario(usuario);
+            return ResponseEntity.ok(creado.getId());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
+
+    // LOGIN: user case-insensitive, errores solicitados
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
+        String user = payload.getOrDefault("user", "");
+        String password = payload.getOrDefault("password", "");
+
+        try {
+            Usuario u = usuarioService.authenticate(user, password);
+            // Puedes devolver datos mínimos del usuario
+            return ResponseEntity.ok(Map.of(
+                "id", u.getId(),
+                "user", u.getUser(),
+                "email", u.getEmail()
+            ));
+        } catch (IllegalArgumentException e) {
+            // Mensajes exactos solicitados
+            String msg = e.getMessage();
+            return ResponseEntity.badRequest().body(Map.of("message", msg));
+        }
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUsuario(@PathVariable Long id) {
