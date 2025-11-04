@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -119,5 +121,32 @@ public class EntradaNoOficialService {
             throw new IllegalArgumentException("DNI_COMPRADOR es obligatorio");
         if (e.getEmailComprador() == null || e.getEmailComprador().isBlank())
             throw new IllegalArgumentException("EMAIL_COMPRADOR es obligatorio");
+    }
+    
+    @Transactional
+    public Map<String, Object> validarYMarcarEscaneo(Long eventoId, String codigoQr) {
+        if (eventoId == null || codigoQr == null || codigoQr.isBlank()) {
+            throw new IllegalArgumentException("Parámetros inválidos");
+        }
+
+        EntradaNoOficial entrada = entradaNoOficialRepository
+                .findByEventoIdAndCodigoQr(eventoId, codigoQr)
+                .orElseThrow(() -> new RuntimeException("NOT_FOUND"));
+
+        // En tu entidad 'escaneada' es Boolean
+        if (Boolean.TRUE.equals(entrada.getEscaneada())) {
+            // ya estaba escaneada
+            throw new IllegalStateException("ALREADY_SCANNED");
+        }
+
+        // marcar y persistir
+        entrada.setEscaneada(true);
+        entradaNoOficialRepository.save(entrada);
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("nombreComprador",   entrada.getNombreComprador());
+        res.put("apellidosComprador",entrada.getApellidosComprador());
+        res.put("dniComprador",      entrada.getDniComprador());
+        return res;
     }
 }

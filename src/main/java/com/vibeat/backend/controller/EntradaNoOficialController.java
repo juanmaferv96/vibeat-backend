@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/entradas-no-oficiales")
@@ -74,6 +75,40 @@ public class EntradaNoOficialController {
             @RequestParam(required = false) String usuarioLogin,
             @RequestParam(name = "tipoDesc", required = false) String tipoDesc) {
         return pdfEntradaService.descargarPdfNoOficial(id, eventoNombre, usuarioLogin, tipoDesc);
+    }
+    
+    @PostMapping("/scan")
+    public ResponseEntity<?> scan(@RequestBody Map<String, String> payload) {
+        try {
+            Long eventoId = Long.valueOf(payload.get("eventoId"));
+            String codigoQr = payload.get("codigoQr");
+
+            Map<String, Object> data = entradaNoOficialService.validarYMarcarEscaneo(eventoId, codigoQr);
+
+            // 200 OK → válido y marcado como escaneado
+            return ResponseEntity.ok(data);
+
+        } catch (IllegalStateException ise) {
+            // 409 → ya escaneada
+            if ("ALREADY_SCANNED".equals(ise.getMessage())) {
+                return ResponseEntity.status(409).body(Map.of(
+                    "message", "Esta entrada ya ha sido escaneada"
+                ));
+            }
+            return ResponseEntity.badRequest().body(Map.of("message", "Estado inválido"));
+
+        } catch (RuntimeException re) {
+            // 404 → no existe para ese evento + qr
+            if ("NOT_FOUND".equals(re.getMessage())) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "message", "ENTRADA NO VALIDA PARA ESTE EVENTO"
+                ));
+            }
+            return ResponseEntity.status(500).body(Map.of("message", "Error interno"));
+
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body(Map.of("message", "Error interno"));
+        }
     }
 
 }
