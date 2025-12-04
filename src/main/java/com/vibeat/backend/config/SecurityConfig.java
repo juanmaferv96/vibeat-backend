@@ -6,7 +6,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -19,10 +18,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .cors(Customizer.withDefaults())
+            .cors(Customizer.withDefaults()) // Activa la configuración CORS definida abajo
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permite pre-flight checks
                 .requestMatchers("/api/**").permitAll()
                 .anyRequest().permitAll()
             )
@@ -36,17 +35,18 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Para DEV y pruebas: permitir cualquier origen
-        // (para PROD, cámbialo por setAllowedOrigins(List.of("https://tu-dominio"))) 
-        config.setAllowedOriginPatterns(List.of("*"));
-
+        // IMPORTANTE: Permitimos patrones para evitar problemas entre http y https
+        // En local aceptará localhost, en prod aceptará tu dominio de Render
+        config.setAllowedOriginPatterns(List.of("*")); 
+        
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("Content-Disposition"));
-        config.setAllowCredentials(false);
+        config.setExposedHeaders(List.of("Authorization", "Content-Disposition")); // Útil si devuelves JWT o ficheros
+        
+        // Si en el futuro usas Cookies/Session, cambia esto a true y define orígenes exactos en vez de "*"
+        config.setAllowCredentials(true); 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Aplica a toda tu API
         source.registerCorsConfiguration("/**", config);
         return source;
     }
