@@ -10,4 +10,6 @@ VOLUME /tmp
 # Copiamos el jar generado en la etapa anterior
 COPY --from=build /app/target/vibeat-backend-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+
+# Añadimos -Xmx350m para que Java nunca use más de 350MB de RAM (dejando espacio al SO)
+ENTRYPOINT ["java", "-Xmx350m", "-Xms350m", "-jar", "/app.jar"]
