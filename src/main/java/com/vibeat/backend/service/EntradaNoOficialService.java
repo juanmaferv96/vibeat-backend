@@ -1,7 +1,10 @@
 package com.vibeat.backend.service;
 
 import com.vibeat.backend.model.EntradaNoOficial;
+import com.vibeat.backend.model.EventoNoOficial;
+import com.vibeat.backend.model.TipoEntrada;
 import com.vibeat.backend.repository.EntradaNoOficialRepository;
+import com.vibeat.backend.repository.EventoNoOficialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -19,10 +22,49 @@ public class EntradaNoOficialService {
     @Autowired
     private EntradaNoOficialRepository entradaNoOficialRepository;
 
+    @Autowired
+    private EventoNoOficialRepository eventoNoOficialRepository;
+
     @Transactional
     public EntradaNoOficial saveEntrada(EntradaNoOficial e) {
         validarRequeridos(e);
 
+        // --- INICIO LÓGICA DE STOCK ---
+        // 1. Buscamos el evento asociado
+        EventoNoOficial evento = eventoNoOficialRepository.findById(e.getEventoId())
+                .orElseThrow(() -> new IllegalArgumentException("El evento con ID " + e.getEventoId() + " no existe."));
+
+        // 2. Buscamos el tipo de entrada en la lista JSON del evento
+        List<TipoEntrada> tipos = evento.getTiposEntrada();
+        boolean tipoEncontrado = false;
+
+        if (tipos != null) {
+            for (TipoEntrada te : tipos) {
+                // Comparamos por nombre (que es el identificador guardado en la entrada)
+                if (te.getNombre() != null && te.getNombre().equals(e.getTipoEntrada())) {
+                    
+                    // 3. Verificamos disponibilidad
+                    if (te.getEntradasDisponibles() <= 0) {
+                        throw new IllegalStateException("AGOTADAS");
+                    }
+                    
+                    // 4. Restamos una entrada
+                    te.setEntradasDisponibles(te.getEntradasDisponibles() - 1);
+                    tipoEncontrado = true;
+                    break;
+                }
+            }
+        }
+
+        if (!tipoEncontrado) {
+            throw new IllegalArgumentException("El tipo de entrada '" + e.getTipoEntrada() + "' no existe en la configuración del evento.");
+        }
+
+        // 5. Guardamos el evento con el contador actualizado
+        eventoNoOficialRepository.save(evento);
+        // --- FIN LÓGICA DE STOCK ---
+
+        // Continuamos con la lógica original de creación de la entrada
         if (e.getPremiada() == null) e.setPremiada(false);
         if (e.getEscaneada() == null) e.setEscaneada(false);
 

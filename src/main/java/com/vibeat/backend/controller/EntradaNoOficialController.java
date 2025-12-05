@@ -34,8 +34,21 @@ public class EntradaNoOficialController {
     }
 
     @PostMapping
-    public ResponseEntity<EntradaNoOficial> createEntrada(@RequestBody EntradaNoOficial entrada) {
-        return ResponseEntity.ok(entradaNoOficialService.saveEntrada(entrada));
+    public ResponseEntity<?> createEntrada(@RequestBody EntradaNoOficial entrada) {
+        try {
+            EntradaNoOficial nueva = entradaNoOficialService.saveEntrada(entrada);
+            return ResponseEntity.ok(nueva);
+        } catch (IllegalStateException e) {
+            // Capturamos el error de stock agotado
+            if ("AGOTADAS".equals(e.getMessage())) {
+                return ResponseEntity.status(409).body(Map.of("message", "Lo sentimos, las entradas de este tipo se han agotado."));
+            }
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", "Error interno al procesar la compra."));
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -111,5 +124,4 @@ public class EntradaNoOficialController {
             return ResponseEntity.status(500).body(Map.of("message", "Error interno"));
         }
     }
-
 }
