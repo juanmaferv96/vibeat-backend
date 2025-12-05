@@ -72,9 +72,10 @@ public class EntradaNoOficialController {
     public ResponseEntity<byte[]> descargarPdf(
             @PathVariable Long id,
             @RequestParam(required = false) String eventoNombre,
+            @RequestParam(required = false) String eventoDesc,
             @RequestParam(required = false) String usuarioLogin,
             @RequestParam(name = "tipoDesc", required = false) String tipoDesc) {
-        return pdfEntradaService.descargarPdfNoOficial(id, eventoNombre, usuarioLogin, tipoDesc);
+    	return pdfEntradaService.descargarPdfNoOficial(id, eventoNombre, eventoDesc, usuarioLogin, tipoDesc);  
     }
     
     @PostMapping("/scan")
